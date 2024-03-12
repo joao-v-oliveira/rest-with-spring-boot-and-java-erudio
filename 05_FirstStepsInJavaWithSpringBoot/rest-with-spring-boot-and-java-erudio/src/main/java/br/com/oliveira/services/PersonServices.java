@@ -8,6 +8,8 @@ import org.springframework.stereotype.Service;
 
 import br.com.oliveira.data.vo.v1.PersonVO;
 import br.com.oliveira.exceptions.ResourceNotFoundException;
+import br.com.oliveira.mapper.DozerMapper;
+import br.com.oliveira.model.Person;
 import br.com.oliveira.repositories.PersonRepository;
 
 @Service
@@ -22,22 +24,27 @@ public class PersonServices {
 
         logger.info("Finding all people!");
 
-        return repository.findAll();
+        return DozerMapper.parserListObjects(repository.findAll(), PersonVO.class);
     }
 
     public PersonVO findById(Long id) {
 
         logger.info("Finding one person!");
 
-        return repository.findById(id)
+        var entity = repository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("No records found for this Id!"));
+
+        return DozerMapper.parserObject(entity, PersonVO.class);
     }
 
     public PersonVO create(PersonVO person) {
 
         logger.info("Creating one person!");
 
-        return repository.save(person);
+        var entity = DozerMapper.parserObject(person, Person.class);
+        var vo = DozerMapper.parserObject(repository.save(entity), PersonVO.class);
+
+        return vo;
     }
 
     public PersonVO update(PersonVO person) {
@@ -52,7 +59,9 @@ public class PersonServices {
         entity.setAddress(person.getAddress());
         entity.setGender(person.getGender());
 
-        return repository.save(person);
+        var vo = DozerMapper.parserObject(repository.save(entity), PersonVO.class);
+
+        return vo;
     }
 
     public void delete(Long id) {
